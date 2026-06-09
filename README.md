@@ -39,6 +39,7 @@ Na raiz do projeto, crie ou edite o arquivo `.env` preenchendo as variáveis com
 NGROK_COMMAND_URL=sua-url-do-ngrok.ngrok-free.dev
 WEBHOOK_URL=https://sua-url-do-ngrok.ngrok-free.dev
 NGROK_AUTHTOKEN=SEU_TOKEN_REAL_DO_NGROK
+```
 
 ---
 
