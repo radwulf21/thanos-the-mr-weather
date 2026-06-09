@@ -45,7 +45,7 @@ NGROK_AUTHTOKEN=SEU_TOKEN_REAL_DO_NGROK
 
 ### 4. Inicializar o Ambiente Docker
 
-Com o Docker Desktop aberto e rodando em segundo plano, execute o seguinte comando no terminal da pasta do projeto para subir os contêineres do N8N e do Ngrok em modo background (-d):
+Com o Docker Desktop aberto e rodando em segundo plano, execute o seguinte comando no terminal da pasta `n8n` do projeto para subir os contêineres do N8N e do Ngrok em modo background (-d):
 
 docker compose up -d
 
