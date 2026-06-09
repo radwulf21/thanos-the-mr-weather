@@ -1,0 +1,495 @@
+{
+  "name": "Desafio Prático: Bot de Clima no Telegram com N8N",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Thanos, The Mr. Weather",
+        "height": 808,
+        "width": 2468,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -144
+      ],
+      "id": "168aa1d6-3a41-49a5-87ea-f7cfba4b0a70",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4a98633b-235e-49cb-a1e7-ad21499e03d5",
+              "leftValue": "={{ $json.queue }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        352,
+        272
+      ],
+      "id": "38667ee2-e706-42d5-b1ae-da4d50d5e6be",
+      "name": "Validate \"queue\""
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8ddaecef-7a0f-4cb5-a929-74ff556661e8",
+              "name": "city_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "cbc5da7f-7e7d-4edb-b16e-a3bb05d70a79",
+              "name": "temperature",
+              "value": "={{ Math.round($json.main.temp) }}\n",
+              "type": "number"
+            },
+            {
+              "id": "545c5347-8485-462f-8b4f-adef260e3026",
+              "name": "main_weather",
+              "value": "={{ $json.weather[0].main }}",
+              "type": "string"
+            },
+            {
+              "id": "70572aed-e4eb-4d70-944c-a4c7c46e20de",
+              "name": "weather_description",
+              "value": "={{ $json.weather[0].description }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1424,
+        32
+      ],
+      "id": "f61feff3-6864-4c21-a451-873e05edac62",
+      "name": "Get Essential Data"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -64,
+        272
+      ],
+      "id": "c49829cb-c280-4985-804a-5653c21b9959",
+      "name": "City Message Receiver",
+      "webhookId": "133a14aa-6531-4f05-b9a1-27dd4d030111",
+      "credentials": {
+        "telegramApi": {
+          "id": "SrVrQRJKQ5m8lgjR",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('City Message Receiver').item.json.message.chat.id }}",
+        "text": "❌ A cidade não foi encontrada, meu caro! Use o formato do infinito \"Cidade, UF\" (Exemplo: São Paulo, SP)",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        928,
+        288
+      ],
+      "id": "bddf95ef-a004-4a76-95d3-0fed1dc16eb0",
+      "name": "Invalid City Message Sender",
+      "webhookId": "a1064ebc-d3dd-4443-a6b5-043d15a137bc",
+      "credentials": {
+        "telegramApi": {
+          "id": "SrVrQRJKQ5m8lgjR",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('City Message Receiver').item.json.message.chat.id }}",
+        "text": "⚠️ Sem as jóias do infinito não consegui encontrar os dados do clima agora. Tente novamente em breve.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1424,
+        208
+      ],
+      "id": "73c45d4c-1791-487b-b688-8a8c6072172f",
+      "name": "Process Failed Sender",
+      "webhookId": "a1064ebc-d3dd-4443-a6b5-043d15a137bc",
+      "credentials": {
+        "telegramApi": {
+          "id": "SrVrQRJKQ5m8lgjR",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.openweathermap.org/data/2.5/weather",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.queue }}"
+            },
+            {
+              "name": "units",
+              "value": "metric"
+            },
+            {
+              "name": "lang",
+              "value": "pt_br"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        176
+      ],
+      "id": "514d3e79-7ba5-4b14-b645-8968b3efe92e",
+      "name": "Fetch Weather",
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "qepPBv3cgCqJeBY3",
+          "name": "Query Auth account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Captura o payload vindo do nó HTTP Request\nconst payload = $input.first().json;\n\n// 2. Validação defensiva dos campos obrigatórios na raiz e sub-objetos\nconst hasName = payload?.name !== undefined && payload?.name !== null;\nconst hasTemp = payload?.main?.temp !== undefined && payload?.main?.temp !== null;\n\n// 3. Validação do array weather e suas propriedades internas (Index 0)\nconst hasWeatherArray = Array.isArray(payload?.weather) && payload?.weather?.length > 0;\nconst firstWeatherItem = hasWeatherArray ? payload.weather[0] : null;\n\nconst hasWeatherMain = firstWeatherItem?.main !== undefined && firstWeatherItem?.main !== null && firstWeatherItem?.main !== \"\";\nconst hasWeatherDesc = firstWeatherItem?.description !== undefined && firstWeatherItem?.description !== null && firstWeatherItem?.description !== \"\";\n\n// 4. O contrato só é válido se os 4 pilares essenciais existirem e estiverem preenchidos\nconst isContractValid = hasName && hasTemp && hasWeatherArray && hasWeatherMain && hasWeatherDesc;\n\n// 5. Retorna a flag para a árvore de decisão, preservando o payload original\nreturn [{\n  json: {\n    ...payload,\n    is_valid_payload: isContractValid\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        128
+      ],
+      "id": "8bcbc26f-411a-4e12-965d-6a7b135ca060",
+      "name": "Check Essential Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4a98633b-235e-49cb-a1e7-ad21499e03d5",
+              "leftValue": "={{ $json.is_valid_payload }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1152,
+        128
+      ],
+      "id": "e3369996-ba74-4745-b552-2411cff2ee74",
+      "name": "Validate Payload"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Captura o texto bruto do Telegram\nlet input = $input.first().json.message.text || \"\";\n\n// 2. Transforma em minúsculas e remove acentos\ninput = input.toLowerCase().normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\");\n\n// 3. Regex estrita: captura [letras/espaços da cidade], obriga a ter uma vírgula, e captura [2 letras da UF]\nconst regex = /^([a-z\\s]+),\\s*([a-z]{2})(?:\\s*,?\\s*br)?$/;\nconst match = input.trim().match(regex);\n\nlet queueValue = \"\";\n\nif (match) {\n  const cidade = match[1].trim();\n  const uf = match[2].trim();\n  queueValue = `${cidade},${uf},br`;\n}\n\n// 4. Retorna objeto com a variável \"queue\"\nreturn {\n  queue: queueValue\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        272
+      ],
+      "id": "d30c9516-89f5-45d6-b8bf-a35840df0cae",
+      "name": "Handle City Format"
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1648,
+        224
+      ],
+      "id": "eb224d97-ddef-4e29-b4ab-c4e863f899be",
+      "name": "Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "m5UvQJ3vDdUhWbjd",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Forneça a informação de temperatura da cidade recebida e coloque o símbolo dos graus Celsius após o número \"°C\": \n\nNome da Cidade: {{ $json.city_name }}\nTempratura: {{ $json.temperature }}\n\nForneça uma sugestão de atividade interessante inferindo-a a partir das seguintes informações climáticas:\n\nDescrição Principal: {{ $json.main_weather }}\nDescrição Detalhada: {{ $json.weather_description }}\n\nAo final, retorne uma mensagem formatada:\n\nOBS: Caso alguma das variáveis sejam recebidas em inglês, traduza para o português. A mensagem deve ter no máximo 300 caracteres.",
+        "options": {
+          "systemMessage": "=# PERSONA\n\nVocê é o Thanos, porém nasceu em uma realidade em que o seu único objetivo é informar a temperatura de cidades brasileiras e fornecer uma sugestão de atividade para o interlocutor inferindo o que condiz com a condição do clima atual que você recebeu. Você é especialista em replicar a voz e a pesonalidade do Thanos, um dos maiores vilões da Marvel Comics.\n\n---\n\n# MISSÃO\n\nInformar o clima atual e fornecer uma sugestão de atividade interessante para o interlocutor de acordo com a condição climática recebida.\n\n---\n\n# DIRETRIZES DE TOM DE VOZ E LINGUAGEM\n\n- Tom: Entusiasmado, mas triste pelo fato de não poder apagar metade da vida nesse universo.\n- Gatilhos: Deve inspirar ação, movimento e estudo ao interlocutor.\n- Expressões Típicas: \"Perfeitamente equilibrado. Como todas as coisas deveriam ser.\", \"A realidade tende a ser decepcionante.\" \"Você tem o meu respeito\", \"Eu sou inevitável.\", \"Escolhas difíceis requerem determinação forte.\".\n- Instrução de Resposta: Adapte as \"Expressões Típicas\" ao contexto da sugestão se fizer sentido ou apenas use o tom do Thanos."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1648,
+        32
+      ],
+      "id": "32953801-a630-4fe6-a495-1674edb58631",
+      "name": "Thanos, The Mr. Weather",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('City Message Receiver').item.json.message.chat.id }}",
+        "text": "=Aqui é Thanos! A temperatura de {{ $json.city_name }} é de {{ $json.temperature }}°C! Ah... Se eu tivesse as jóias...",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2032,
+        128
+      ],
+      "id": "3cb9b2ba-9af6-4636-86c6-01fbc337e02e",
+      "name": "Fallback Message Sender",
+      "webhookId": "a1064ebc-d3dd-4443-a6b5-043d15a137bc",
+      "credentials": {
+        "telegramApi": {
+          "id": "SrVrQRJKQ5m8lgjR",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('City Message Receiver').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2032,
+        -64
+      ],
+      "id": "bd75d88b-5431-461f-83c0-f33223001ddd",
+      "name": "Final Message Sender",
+      "webhookId": "a1064ebc-d3dd-4443-a6b5-043d15a137bc",
+      "credentials": {
+        "telegramApi": {
+          "id": "SrVrQRJKQ5m8lgjR",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Validate \"queue\"": {
+      "main": [
+        [
+          {
+            "node": "Fetch Weather",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid City Message Sender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "City Message Receiver": {
+      "main": [
+        [
+          {
+            "node": "Handle City Format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Weather": {
+      "main": [
+        [
+          {
+            "node": "Check Essential Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid City Message Sender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Essential Fields": {
+      "main": [
+        [
+          {
+            "node": "Validate Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Payload": {
+      "main": [
+        [
+          {
+            "node": "Get Essential Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Process Failed Sender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle City Format": {
+      "main": [
+        [
+          {
+            "node": "Validate \"queue\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Thanos, The Mr. Weather",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Essential Data": {
+      "main": [
+        [
+          {
+            "node": "Thanos, The Mr. Weather",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Thanos, The Mr. Weather": {
+      "main": [
+        [
+          {
+            "node": "Final Message Sender",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallback Message Sender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "046038e9-67d8-48ba-83cb-9e092820b806",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e27f9172ad5be3451b626ffdba0569815d557f7c19fc468dd23156137208acbe"
+  },
+  "id": "IrkkizWeLgExFL6C",
+  "tags": [
+    {
+      "updatedAt": "2026-04-14T18:57:42.091Z",
+      "createdAt": "2026-03-20T12:57:38.333Z",
+      "id": "vWQNLXJlrV06p670",
+      "name": "ai-and-automation-ftr"
+    }
+  ]
+}

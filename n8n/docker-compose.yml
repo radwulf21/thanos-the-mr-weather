@@ -1,0 +1,34 @@
+services:
+  n8n-editor:
+    image: n8nio/n8n:2.12.1
+    container_name: n8n-editor-ftr
+    restart: always
+    ports:
+      - "5678:5678"
+    volumes:
+      - ./n8n-data:/home/node/.n8n
+    environment:
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+      - TZ=America/Sao_Paulo
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - WEBHOOK_URL=${WEBHOOK_URL}
+    networks:
+      - n8n-ftr
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok-ftr
+    restart: always
+    ports:
+      - "4040:4040"
+    command: http --url=${NGROK_COMMAND_URL} n8n-editor-ftr:5678
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    networks:
+      - n8n-ftr
+    depends_on:
+      - n8n-editor
+
+networks:
+  n8n-ftr:
+    driver: bridge
